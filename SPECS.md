@@ -17,6 +17,8 @@ Some additional rules regarding IBANs are:
 
 # IBAN checksum calculation
 
+Checksum digits are the first two digits after the country code  
+
 Checksum calculation is done using the following algorithm:
     
     1. Check that the total IBAN length is correct as per the country. If not, the IBAN is invalid.
