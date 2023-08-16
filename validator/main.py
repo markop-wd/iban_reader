@@ -110,7 +110,7 @@ def main():
     elif args.file:
         validate_ibans(args.file)
     else:
-        print("Please choose an input, use -h to see the usage")
+        logger.error("Please choose an input, use -h to see the usage")
 
 
 if __name__ == "__main__":
