@@ -11,5 +11,5 @@ def display_ibans():
 
 def _return_ibans():
     with open("storage.json", "r") as storage_fp:
-        iban_list = storage_fp.readlines()
+        iban_list = storage_fp.read().splitlines()
     return iban_list

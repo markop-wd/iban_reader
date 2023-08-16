@@ -23,12 +23,16 @@ class Montenegro(Base):
 
     def validate(self) -> bool:
         if self.iban[2:4] != "25":
+            logger.error("Checksum for Montenegro must always be 25")
             return False
         if len(self.iban) != 22:
+            logger.error("Length for Montenegro must always be 22")
             return False
         if not mod97_regular_checksum(self.iban):
+            logger.error("Checksum algorithm didn't return 25")
             return False
         if not self.check_bban():
+            logger.error("Bank code in BBAN is not valid")
             return False
 
         return True

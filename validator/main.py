@@ -19,13 +19,15 @@ def validate_ibans(file_path: str):
 def validate_iban(iban: str) -> bool:
     store_iban(iban)
     iban = iban.replace(" ", "").upper()
-
     country = get_country(iban)
     country_validator = Validators.get_validator(country)
     if not country_validator:
         logger.error("Validator for that country is not implemented.")
     validator = country_validator(iban)
-    return validator.validate()
+    if not validator.validate():
+        logger.error(f"Invalid IBAN: {iban} for country: {country}")
+        return False
+    return True
 
 
 def get_country(iban):
@@ -59,7 +61,7 @@ def parse_cli():
         help="Set the verbosity level of the logger. Accepts either the "
         "textual/string options [ERROR, WARNING, INFO,"
         "DEBUG] or their integer counterparts [0,1,2,3]",
-        default=1,
+        default="1",
         type=log_level_parser,
     )
 
@@ -101,7 +103,7 @@ def log_level_parser(log_level: str) -> str:
 def main():
     args = parse_cli()
     setup_logger(args.verbosity)
-    if args.display_checked:
+    if args.display_previous:
         display_ibans()
     elif args.iban:
         validate_iban(args.iban)
