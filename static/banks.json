@@ -1,5 +1,5 @@
 {
-  "me": {
+  "ME": {
     "erste": 540,
     "atlas": 505,
     "crnogorska": 510,
@@ -19,7 +19,7 @@
     "poreska_uprava": 820,
     "mup": 825,
     "drzavni_trezor_glavni": 830,
-    "RAČUN ZA LIKVIDNOST": 831,
+    "likvidnost": 831,
     "drzavni_trezor_centralni": 832,
     "egalizacioni_fond": 833,
     "neplaceni_porezi": 834,
