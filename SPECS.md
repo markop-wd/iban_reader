@@ -2,11 +2,12 @@
 IBAN contains max 34 alpha-num chars containing:
     
     - country code (using ISO 3166-1 alpha-2 – two letters)
-    - two check digits (checksum of the account number)
+    - two check digits (checksum of the IBAN number)
     - BBAN number that includes
         - domestic account number
         - branch identifier
         - potential routing information
+        - checksum number
 
 Some additional rules regarding IBANs are:   
 
@@ -36,3 +37,5 @@ Checksum calculation is done using the following algorithm:
     - BBAN length is 18  
     - Account number checksum is in the last two digits
     - Example IBAN `ME25 5050 0001 2345 6789 51`
+
+For bank codes I have used this [website](https://www.erstebank.me/sr_ME/pravna_lica/alati/iban-kalkulator)  
