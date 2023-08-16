@@ -1,40 +1,115 @@
+import argparse
+from argparse import ArgumentParser
+from static_api import get_countries
+from storage import store_iban, display_ibans
+import logging
+
+from validators import Validators
+
+logger = logging.getLogger(__name__)
+
+
+def validate_ibans(file_path: str):
+    with open(file_path, "r") as ibans_fp:
+        input_ibans = ibans_fp.readlines()
+    for iban in input_ibans:
+        validate_iban(iban)
+
 
 def validate_iban(iban: str) -> bool:
+    store_iban(iban)
     iban = iban.replace(" ", "").upper()
-    if iban[:2] != "ME":
+
+    country = get_country(iban)
+    country_validator = Validators.get_validator(country)
+    if not country_validator:
+        logger.error("Validator for that country is not implemented.")
+    validator = country_validator(iban)
+    return validator.validate()
+
+
+def get_country(iban):
+    countries = get_countries()
+    country = iban[:2]
+    if country not in countries:
+        logger.error("Country code is not valid.")
         return False
-    elif len(iban) != 22:
-        return False
-    elif not validate_iban_checksum(iban):
-        return False
-    elif not check_bban(iban):
-        return False
-
-
-def check_bban(iban: str) -> bool:
-    return True
-
-
-def validate_iban_checksum(iban: str) -> bool:
-    """
-    Function for validation of the IBAN checksum
-    More on calculating the checksum is located in the requirements
-
-    :param iban: IBAN which to check
-    :return: whether the provided IBAN checksum matches the calculated value
-    """
-    # First replace the checksum values with 00 so instead of ME25 we have ME00
-    mod_iban = iban[:2] + "00" + iban[4:]
-    # Put the country code and checksum at the end of the IBAN
-    mod_iban = mod_iban[4:] + mod_iban[:4]
-    # Convert the alphabet characters to integer values - A=10, B=11 etc.
-    iban_digits = ''.join(str(ord(char) - 55) if char.isalpha() else char for char in mod_iban)
-    iban_int = int(iban_digits)
-    checksum = 98 - (iban_int % 97)
-    # If we get 1 convert it to 01
-    checksum = str(checksum).rjust(2, '0')
-    if checksum == iban[2:4]:
-        return True
     else:
-        return False
+        return iban[:2]
 
+
+def parse_cli():
+    arg_parser = ArgumentParser(
+        description="IBAN Validator",
+        prog="IBAN Validator",
+        usage="\nProvide either a singular IBANs or a file with multiple IBANs to validate\n"
+        "Alternatively display the previously checked IBANs",
+    )
+    arg_parser.add_argument("-i", "--iban", type=str, help="Which IBAN to validate")
+    arg_parser.add_argument("-f", "--file", type=str, help="File with a list of IBANs")
+    arg_parser.add_argument(
+        "-d",
+        "--display_previous",
+        action="store_true",
+        help="Display previously inputted IBANs",
+    )
+    arg_parser.add_argument(
+        "-v",
+        "--verbosity",
+        help="Set the verbosity level of the logger. Accepts either the "
+        "textual/string options [ERROR, WARNING, INFO,"
+        "DEBUG] or their integer counterparts [0,1,2,3]",
+        default=1,
+        type=log_level_parser,
+    )
+
+    args = arg_parser.parse_args()
+    return args
+
+
+def setup_logger(verbosity):
+    if verbosity.upper() == "DEBUG":
+        log_format = (
+            "%(asctime)s - %(levelname)s - [%(filename)s:%(lineno)d] - %(message)s"
+        )
+    else:
+        log_format = "%(asctime)s - %(levelname)s - %(message)s"
+
+    logging.basicConfig(
+        level=verbosity.upper(),
+        format=log_format,
+    )
+
+
+def log_level_parser(log_level: str) -> str:
+    all_log_levels = {0: "ERROR", 1: "WARNING", 2: "INFO", 3: "DEBUG"}
+
+    try:
+        level = int(log_level)
+        if level in all_log_levels:
+            return all_log_levels[level].upper()
+        else:
+            raise argparse.ArgumentTypeError(f"Invalid log level: {log_level}")
+    except ValueError:
+        log_level_upper = log_level.upper()
+        if log_level_upper in all_log_levels.values():
+            return log_level_upper
+        else:
+            raise argparse.ArgumentTypeError(f"Invalid log level: {log_level}")
+
+
+def main():
+    args = parse_cli()
+    setup_logger(args.verbosity)
+    if args.display_checked:
+        display_ibans()
+    elif args.iban:
+        validate_iban(args.iban)
+    elif args.file:
+        validate_ibans(args.file)
+    else:
+        print("Please choose an input, use -h to see the usage")
+
+
+if __name__ == "__main__":
+    main()
