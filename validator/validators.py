@@ -1,8 +1,8 @@
 import logging
 from abc import abstractmethod, ABC
-from static_api import get_banks
+from validator.static_api import get_banks
 
-from checksum_algorithms import mod97_regular_checksum
+from validator.checksum_algorithms import mod97_regular_checksum
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +40,11 @@ class Montenegro(Base):
     def check_bban(self):
         banks = get_banks("ME")
         bban = self.iban[4:]
-        if bban[:3] not in banks.values():
+        try:
+            bank_code = int(bban[:3])
+        except ValueError:
+            return False
+        if bank_code not in banks.values():
             return False
         return True
 
