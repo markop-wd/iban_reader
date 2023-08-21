@@ -1,41 +1,51 @@
 import argparse
 from argparse import ArgumentParser
-from static_api import get_countries
-from storage import store_iban, display_ibans
+from validator.static_api import get_countries
+from validator.storage import store_iban, display_ibans
 import logging
+from time import ctime
 
-from validators import Validators
+from validator.validators import Validators
 
 logger = logging.getLogger(__name__)
 
 
 def validate_ibans(file_path: str):
     with open(file_path, "r") as ibans_fp:
-        input_ibans = ibans_fp.readlines()
+        input_ibans = ibans_fp.read().split("\n")
     for iban in input_ibans:
         validate_iban(iban)
 
 
 def validate_iban(iban: str) -> bool:
-    store_iban(iban)
+    # store_iban(iban, validity, time)
     iban = iban.replace(" ", "").upper()
     country = get_country(iban)
+    if not country:
+        logger.error("Country code is not valid.")
+        store_iban(iban, False, ctime())
+        return False
     country_validator = Validators.get_validator(country)
     if not country_validator:
         logger.error("Validator for that country is not implemented.")
+        store_iban(iban, False, ctime())
+        return False
+
     validator = country_validator(iban)
     if not validator.validate():
         logger.error(f"Invalid IBAN: {iban} for country: {country}")
+        store_iban(iban, False, ctime())
         return False
+    store_iban(iban, True, ctime())
+    logger.info(f"Valid IBAN: {iban} for country: {country}")
     return True
 
 
-def get_country(iban):
+def get_country(iban) -> str:
     countries = get_countries()
     country = iban[:2]
     if country not in countries:
-        logger.error("Country code is not valid.")
-        return False
+        return ""
     else:
         return iban[:2]
 
@@ -61,7 +71,7 @@ def parse_cli():
         help="Set the verbosity level of the logger. Accepts either the "
         "textual/string options [ERROR, WARNING, INFO,"
         "DEBUG] or their integer counterparts [0,1,2,3]",
-        default="1",
+        default="3",
         type=log_level_parser,
     )
 
@@ -113,5 +123,4 @@ def main():
         logger.error("Please choose an input, use -h to see the usage")
 
 
-if __name__ == "__main__":
-    main()
+
