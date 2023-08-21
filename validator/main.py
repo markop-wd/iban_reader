@@ -13,6 +13,7 @@ logger = logging.getLogger(__name__)
 def validate_ibans(file_path: str):
     with open(file_path, "r") as ibans_fp:
         input_ibans = ibans_fp.read().split("\n")
+    # TODO - Replace this individual approach with bulk approach, as I am opening and closing fp's on each validation
     for iban in input_ibans:
         validate_iban(iban)
 
