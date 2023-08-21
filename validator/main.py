@@ -19,7 +19,6 @@ def validate_ibans(file_path: str):
 
 
 def validate_iban(iban: str) -> bool:
-    # store_iban(iban, validity, time)
     iban = iban.replace(" ", "").upper()
     country = get_country(iban)
     if not country:
