@@ -8,7 +8,7 @@ def get_countries():
 
 
 def get_banks(country: str):
-    with open("static/banks.json") as banks_fp:
+    with open("static/bank_codes.json") as banks_fp:
         banks = json.load(banks_fp)
     country_banks = banks.get(country, None)
     return country_banks
